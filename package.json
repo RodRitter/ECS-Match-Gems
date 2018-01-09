@@ -1,0 +1,17 @@
+{
+  "name": "matchgems",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/core": "^7.0.0-beta.34",
+    "@babel/preset-env": "^7.0.0-beta.34",
+    "babel-loader": "^8.0.0-beta.0",
+    "webpack": "^3.10.0"
+  }
+}
