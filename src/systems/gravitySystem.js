@@ -40,7 +40,7 @@ export class GravitySystem extends System {
                 this.animating = true;
                 let coords = gridSystem.getPositionFromGrid(currGrid.x, currGrid.y);
                 let target = gridSystem.getPositionFromGrid(newGrid.x, newGrid.y);
-                let randomDuration = Math.floor(Math.random() * (950 - 750)) + 750;
+                let randomDuration = Math.floor(Math.random() * (750 - 650)) + 650;
                 let posComp = gemComp.getSiblingComponent('Position');
                 this.animateGravity(posComp, coords, target, randomDuration);
             }

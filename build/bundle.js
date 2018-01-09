@@ -562,6 +562,7 @@ class GameSystem extends __WEBPACK_IMPORTED_MODULE_2__core_system__["a" /* Syste
       height: 13,
       scale: 40
     })]);
+    this.start();
   }
 
   start() {
@@ -569,6 +570,16 @@ class GameSystem extends __WEBPACK_IMPORTED_MODULE_2__core_system__["a" /* Syste
     this.sendSignal('Grid.AddGemsToMap');
     this.sendSignal('Position.AlignAndPositionToGrid');
     this.sendSignal('Gravity.ApplyGravity');
+    this.startSequence();
+  }
+
+  startSequence() {
+    this.fillEntireGrid(); // let grid = this.getComponents('Grid')[0];
+    // for (let i = 0; i < grid.height; i++) {
+    //     window.setTimeout(() => {
+    //         this.addTopRow();
+    //     }, (450*i)+200);      
+    // }
   }
 
   addTopRow() {
@@ -830,7 +841,7 @@ class GravitySystem extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* Sy
         this.animating = true;
         let coords = gridSystem.getPositionFromGrid(currGrid.x, currGrid.y);
         let target = gridSystem.getPositionFromGrid(newGrid.x, newGrid.y);
-        let randomDuration = Math.floor(Math.random() * (950 - 750)) + 750;
+        let randomDuration = Math.floor(Math.random() * (750 - 650)) + 650;
         let posComp = gemComp.getSiblingComponent('Position');
         this.animateGravity(posComp, coords, target, randomDuration);
       }

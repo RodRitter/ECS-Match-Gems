@@ -42,6 +42,6 @@ export class Renderer extends System {
             }
         }
 
-        
+        this.sendSignal('Match.RegisterClickEvents'); // Register click events on new sprites
     }
 }

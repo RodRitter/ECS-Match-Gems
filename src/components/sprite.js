@@ -5,5 +5,6 @@ export class Sprite extends Component {
         this.image = data.image;
         this.sprite = undefined;
         this.loaded = false;
+        this.onClick = false;
     }
 }

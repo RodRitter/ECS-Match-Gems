@@ -42,7 +42,7 @@ export class GameSystem extends System {
             new Position(this.game, {x: 50, y: 50}),
             new Grid(this.game, {width: 10, height: 13, scale: 40})
         ]);
-
+        this.start();
     }
 
     start() {
@@ -50,6 +50,12 @@ export class GameSystem extends System {
         this.sendSignal('Grid.AddGemsToMap');
         this.sendSignal('Position.AlignAndPositionToGrid');
         this.sendSignal('Gravity.ApplyGravity');
+
+        this.startSequence();
+    }
+
+    startSequence() {
+        this.fillEntireGrid();
     }
 
     addTopRow() {
@@ -95,7 +101,7 @@ export class GameSystem extends System {
         this.game.createEntity([
             new Position(this.game, {x: 0, y: 0}),
             new Sprite(this.game, {image: GEMS[randomIndex].image}),
-            new Gem(this.game, {x: x, y: y}),
+            new Gem(this.game, {x: x, y: y, type: GEMS[randomIndex].type}),
             new Gravity(this.game, {})
         ]);
     }
