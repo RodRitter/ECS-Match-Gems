@@ -40,7 +40,7 @@ export class GravitySystem extends System {
                 this.animating = true;
                 let coords = gridSystem.getPositionFromGrid(currGrid.x, currGrid.y);
                 let target = gridSystem.getPositionFromGrid(newGrid.x, newGrid.y);
-                let randomDuration = Math.floor(Math.random() * (750 - 650)) + 650;
+                let randomDuration = 550;//Math.floor(Math.random() * (750 - 650)) + 650;
                 let posComp = gemComp.getSiblingComponent('Position');
                 this.animateGravity(posComp, coords, target, randomDuration);
             }
@@ -49,6 +49,7 @@ export class GravitySystem extends System {
 
     animateGravity(positionComponent, coords, target, duration) {
         let positionSystem = this.getSystem('PositionSystem');
+
         new TWEEN.Tween(coords)
         .to(target, duration)
         .easing(TWEEN.Easing.Bounce.Out)
@@ -58,6 +59,7 @@ export class GravitySystem extends System {
             positionSystem.renderPositions();
         })
         .start();
+        
     }
 
 

@@ -4,7 +4,6 @@ export class Gem extends Component {
     init(data) {
         this.x = data.x;
         this.y = data.y;
-        this.grid = data.grid;
         this.type = data.type;
     }
 }

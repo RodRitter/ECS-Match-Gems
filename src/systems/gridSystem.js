@@ -6,6 +6,12 @@ export class GridSystem extends System {
         this.createListeners();
     }
 
+    onStart() {
+        let grid = this.getComponents('Grid')[0];
+        this.width = grid.width;
+        this.height = grid.height;
+    }
+
     renderGrid() {
         if(this.map === undefined) {this.map = this.createMap()};
 
@@ -58,6 +64,24 @@ export class GridSystem extends System {
                 console.warn(`Error: Trying to add Gem to occupied space on grid map.`);
             }
             
+        }
+    }
+
+    removeFromGrid(x,y) {
+        let gridSys = this.getSystem('GridSystem')
+        let map = gridSys.map;
+        let grid = map[x][y];
+
+        if(grid !== undefined) {
+            let renderer = this.getSystem('Renderer');
+            let spriteComp = grid.getSiblingComponent('Sprite');
+            map[x][y] = undefined;
+
+            if(spriteComp !== undefined) {
+                renderer.stage.removeChild(spriteComp.sprite);
+            }
+            
+            grid.entity.remove();
         }
     }
 

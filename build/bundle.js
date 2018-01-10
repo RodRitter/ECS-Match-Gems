@@ -406,6 +406,12 @@ class GridSystem extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* Syste
     this.createListeners();
   }
 
+  onStart() {
+    let grid = this.getComponents('Grid')[0];
+    this.width = grid.width;
+    this.height = grid.height;
+  }
+
   renderGrid() {
     if (this.map === undefined) {
       this.map = this.createMap();
@@ -467,6 +473,24 @@ class GridSystem extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* Syste
       } else {
         console.warn(`Error: Trying to add Gem to occupied space on grid map.`);
       }
+    }
+  }
+
+  removeFromGrid(x, y) {
+    let gridSys = this.getSystem('GridSystem');
+    let map = gridSys.map;
+    let grid = map[x][y];
+
+    if (grid !== undefined) {
+      let renderer = this.getSystem('Renderer');
+      let spriteComp = grid.getSiblingComponent('Sprite');
+      map[x][y] = undefined;
+
+      if (spriteComp !== undefined) {
+        renderer.stage.removeChild(spriteComp.sprite);
+      }
+
+      grid.entity.remove();
     }
   }
 
@@ -541,9 +565,6 @@ const GEMS = [{
   image: 'resources/gems/element_blue_square_glossy.png',
   type: 'blue'
 }, {
-  image: 'resources/gems/element_green_square_glossy.png',
-  type: 'green'
-}, {
   image: 'resources/gems/element_grey_square_glossy.png',
   type: 'silver'
 }, {
@@ -554,6 +575,11 @@ const GEMS = [{
   type: 'yellow'
 }];
 class GameSystem extends __WEBPACK_IMPORTED_MODULE_2__core_system__["a" /* System */] {
+  onAwake() {
+    this.score = 0;
+    this.createListeners();
+  }
+
   onStart() {
     this.create();
   }
@@ -563,8 +589,8 @@ class GameSystem extends __WEBPACK_IMPORTED_MODULE_2__core_system__["a" /* Syste
       x: 50,
       y: 50
     }), new __WEBPACK_IMPORTED_MODULE_7__components_grid__["a" /* Grid */](this.game, {
-      width: 10,
-      height: 13,
+      width: 12,
+      height: 10,
       scale: 40
     })]);
     this.start();
@@ -594,9 +620,12 @@ class GameSystem extends __WEBPACK_IMPORTED_MODULE_2__core_system__["a" /* Syste
       }
     }
 
-    this.sendSignal('Grid.AddGemsToMap');
-    this.sendSignal('Position.AlignAndPositionToGrid');
-    this.sendSignal('Gravity.ApplyGravity');
+    window.setTimeout(() => {
+      this.sendSignal('Grid.AddGemsToMap');
+      this.sendSignal('Position.AlignAndPositionToGrid');
+      this.sendSignal('Gravity.ApplyGravity');
+      this.sendSignal('Match.RegisterClickEvents');
+    }, 10);
   }
 
   fillEntireGrid() {
@@ -633,6 +662,14 @@ class GameSystem extends __WEBPACK_IMPORTED_MODULE_2__core_system__["a" /* Syste
       y: y,
       type: GEMS[randomIndex].type
     }), new __WEBPACK_IMPORTED_MODULE_6__components_gravity__["a" /* Gravity */](this.game, {})]);
+  }
+
+  createListeners() {
+    this.listen('Game.AddScore', matches => {
+      let score = (matches + matches * 1) * 10;
+      this.score += score;
+      console.log(`+${Math.floor(score)} (${Math.floor(this.score)})`);
+    });
   }
 
 }
@@ -735,7 +772,6 @@ class Gem extends __WEBPACK_IMPORTED_MODULE_0__core_component__["a" /* Component
   init(data) {
     this.x = data.x;
     this.y = data.y;
-    this.grid = data.grid;
     this.type = data.type;
   }
 
@@ -845,7 +881,8 @@ class GravitySystem extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* Sy
         this.animating = true;
         let coords = gridSystem.getPositionFromGrid(currGrid.x, currGrid.y);
         let target = gridSystem.getPositionFromGrid(newGrid.x, newGrid.y);
-        let randomDuration = Math.floor(Math.random() * (750 - 650)) + 650;
+        let randomDuration = 550; //Math.floor(Math.random() * (750 - 650)) + 650;
+
         let posComp = gemComp.getSiblingComponent('Position');
         this.animateGravity(posComp, coords, target, randomDuration);
       }
@@ -880,15 +917,16 @@ class GravitySystem extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* Sy
 
 class MatchSystem extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* System */] {
   onAwake() {
+    this.checkType = undefined;
     this.checkQueue = [];
     this.createListeners();
   }
 
-  registerClickOnSprite(spriteComponent) {
+  registerClickOnSprite(spriteComponent, gemComponent) {
     spriteComponent.sprite.interactive = true;
     spriteComponent.sprite.buttonMode = true;
     spriteComponent.sprite.on('click', () => {
-      console.log('click', this);
+      this.startMatch(gemComponent.x, gemComponent.y);
     });
     spriteComponent.onClick = true;
   }
@@ -898,9 +936,139 @@ class MatchSystem extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* Syst
       let gemComponent = spriteComponent.getSiblingComponent('Gem');
 
       if (gemComponent !== undefined) {
-        this.registerClickOnSprite(spriteComponent);
+        this.registerClickOnSprite(spriteComponent, gemComponent);
       }
     });
+  }
+
+  startMatch(x, y) {
+    let gridSys = this.getSystem('GridSystem');
+    let map = gridSys.map;
+    let origin = map[x][y];
+    this.checkType = origin.type;
+    this.checkQueue.push(origin); // check left
+
+    if (x - 1 >= 0) {
+      this.match(map[x - 1][y]);
+    } // check right
+
+
+    if (x + 1 < gridSys.width) {
+      this.match(map[x + 1][y]);
+    } // check top
+
+
+    if (y - 1 >= 0) {
+      this.match(map[x][y - 1]);
+    } // check bottom
+
+
+    if (y + 1 < gridSys.height) {
+      this.match(map[x][y + 1]);
+    }
+
+    this.checkQueue = Array.from(new Set(this.checkQueue)); // Remove duplicates
+
+    this.onMatched(this.checkQueue);
+  }
+
+  match(gem) {
+    if (gem !== undefined) {
+      let gridSys = this.getSystem('GridSystem');
+      let map = gridSys.map;
+
+      if (gem.type == this.checkType) {
+        this.checkQueue.push(gem); // check left
+
+        if (gem.x - 1 >= 0) {
+          let g = map[gem.x - 1][gem.y];
+
+          if (g !== undefined && this.isQueued(g) == false) {
+            if (g.type == this.checkType) {
+              this.checkQueue.push(g);
+              this.match(g);
+            }
+          }
+        } // check right
+
+
+        if (gem.x + 1 < gridSys.width) {
+          let g = map[gem.x + 1][gem.y];
+
+          if (g !== undefined && this.isQueued(g) == false) {
+            if (g.type == this.checkType) {
+              this.checkQueue.push(g);
+              this.match(g);
+            }
+          }
+        } // check top
+
+
+        if (gem.y - 1 >= 0) {
+          let g = map[gem.x][gem.y - 1];
+
+          if (g !== undefined && this.isQueued(g) == false) {
+            if (g.type == this.checkType) {
+              this.checkQueue.push(g);
+              this.match(g);
+            }
+          }
+        } // check bottom
+
+
+        if (gem.y + 1 < gridSys.height) {
+          let g = map[gem.x][gem.y + 1];
+
+          if (g !== undefined && this.isQueued(g) == false) {
+            if (g.type == this.checkType) {
+              this.checkQueue.push(g);
+              this.match(g);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  isQueued(gem) {
+    if (gem === undefined) return false;
+
+    for (let i = 0; i < this.checkQueue.length; i++) {
+      if (this.checkQueue[i].x == gem.x && this.checkQueue[i].y == gem.y) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  onMatched(matches) {
+    let gridSys = this.getSystem('GridSystem');
+
+    if (matches.length >= 3) {
+      for (let i = 0; i < matches.length; i++) {
+        const gem = matches[i];
+        let sprite = gem.getSiblingComponent('Sprite').sprite;
+        let newAlpha = {
+          alpha: sprite.alpha
+        };
+        let target = {
+          alpha: 0
+        };
+        new TWEEN.Tween(newAlpha).to(target, 100).easing(TWEEN.Easing.Linear.None).onUpdate(function () {
+          sprite.alpha = newAlpha.alpha;
+        }).onComplete(() => {
+          gridSys.removeFromGrid(gem.x, gem.y);
+          this.sendSignal('Gravity.ApplyGravity');
+        }).start();
+      }
+
+      this.sendSignal('Game.AddScore', matches.length);
+    } // Reset
+
+
+    this.checkType = undefined;
+    this.checkQueue = new Array();
   }
 
 }

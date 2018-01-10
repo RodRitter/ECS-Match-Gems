@@ -16,9 +16,6 @@ const GEMS = [
         image: 'resources/gems/element_blue_square_glossy.png',
         type: 'blue'
     }, {
-        image: 'resources/gems/element_green_square_glossy.png',
-        type: 'green'
-    }, {
         image: 'resources/gems/element_grey_square_glossy.png',
         type: 'silver'
     }, {
@@ -32,6 +29,11 @@ const GEMS = [
 
 export class GameSystem extends System {
 
+    onAwake() {
+        this.score = 0;
+        this.createListeners();
+    }
+
     onStart() {
         this.create();
     }
@@ -40,7 +42,7 @@ export class GameSystem extends System {
 
         this.game.createEntity([
             new Position(this.game, {x: 50, y: 50}),
-            new Grid(this.game, {width: 10, height: 13, scale: 40})
+            new Grid(this.game, {width: 12, height: 10, scale: 40})
         ]);
         this.start();
     }
@@ -69,9 +71,13 @@ export class GameSystem extends System {
             }
         }
 
-        this.sendSignal('Grid.AddGemsToMap');
-        this.sendSignal('Position.AlignAndPositionToGrid');
-        this.sendSignal('Gravity.ApplyGravity');
+        
+        window.setTimeout(() => {
+            this.sendSignal('Grid.AddGemsToMap');
+            this.sendSignal('Position.AlignAndPositionToGrid');
+            this.sendSignal('Gravity.ApplyGravity');
+            this.sendSignal('Match.RegisterClickEvents');
+        }, 10);
     }
 
     fillEntireGrid() {
@@ -105,6 +111,14 @@ export class GameSystem extends System {
             new Gem(this.game, {x: x, y: y, type: GEMS[randomIndex].type}),
             new Gravity(this.game, {})
         ]);
+    }
+
+    createListeners() {
+        this.listen('Game.AddScore', (matches) => {
+            let score = (matches + (matches*1)) * 10;
+            this.score += score;
+            console.log(`+${Math.floor(score)} (${Math.floor(this.score)})`);
+        });
     }
 
     
