@@ -99,16 +99,20 @@ class System {
   sendSignal(id) {
     let listeners = this.game.listeners[id];
 
-    for (let i = 0; i < listeners.length; i++) {
-      listeners[i].callback();
+    if (listeners !== undefined) {
+      for (let i = 0; i < listeners.length; i++) {
+        listeners[i].callback();
+      }
     }
   }
 
   sendSignal(id, params) {
     let listeners = this.game.listeners[id];
 
-    for (let i = 0; i < listeners.length; i++) {
-      listeners[i].callback(params);
+    if (listeners !== undefined) {
+      for (let i = 0; i < listeners.length; i++) {
+        listeners[i].callback(params);
+      }
     }
   } // --------------------------------------------
 
@@ -370,7 +374,7 @@ class Renderer extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* System 
   renderNewSprites() {
     let spriteComponents = this.game.components['Sprite'];
 
-    if (spriteComponents !== undefined) {
+    if (this.game.running && spriteComponents !== undefined) {
       for (let i = 0; i < Object.keys(spriteComponents).length; i++) {
         const spriteComponent = this.game.components['Sprite'][Object.keys(spriteComponents)[i]];
 
@@ -380,6 +384,7 @@ class Renderer extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* System 
           spriteComponent.sprite = sprite;
           this.stage.addChild(sprite);
           spriteComponent.loaded = true;
+          this.sendSignal('Renderer.SpriteLoaded', spriteComponent);
         }
       }
     }
@@ -574,12 +579,7 @@ class GameSystem extends __WEBPACK_IMPORTED_MODULE_2__core_system__["a" /* Syste
   }
 
   startSequence() {
-    this.fillEntireGrid(); // let grid = this.getComponents('Grid')[0];
-    // for (let i = 0; i < grid.height; i++) {
-    //     window.setTimeout(() => {
-    //         this.addTopRow();
-    //     }, (450*i)+200);      
-    // }
+    this.fillEntireGrid();
   }
 
   addTopRow() {
@@ -616,6 +616,7 @@ class GameSystem extends __WEBPACK_IMPORTED_MODULE_2__core_system__["a" /* Syste
     window.setTimeout(() => {
       this.sendSignal('Grid.AddGemsToMap');
       this.sendSignal('Position.AlignAndPositionToGrid');
+      this.sendSignal('Match.RegisterClickEvents');
     }, 10);
   }
 
@@ -629,7 +630,8 @@ class GameSystem extends __WEBPACK_IMPORTED_MODULE_2__core_system__["a" /* Syste
       image: GEMS[randomIndex].image
     }), new __WEBPACK_IMPORTED_MODULE_8__components_gem__["a" /* Gem */](this.game, {
       x: x,
-      y: y
+      y: y,
+      type: GEMS[randomIndex].type
     }), new __WEBPACK_IMPORTED_MODULE_6__components_gravity__["a" /* Gravity */](this.game, {})]);
   }
 
@@ -683,6 +685,7 @@ class Sprite extends __WEBPACK_IMPORTED_MODULE_0__core_component__["a" /* Compon
     this.image = data.image;
     this.sprite = undefined;
     this.loaded = false;
+    this.onClick = false;
   }
 
 }
@@ -733,6 +736,7 @@ class Gem extends __WEBPACK_IMPORTED_MODULE_0__core_component__["a" /* Component
     this.x = data.x;
     this.y = data.y;
     this.grid = data.grid;
+    this.type = data.type;
   }
 
 }
@@ -875,7 +879,29 @@ class GravitySystem extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* Sy
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__core_system__ = __webpack_require__(0);
 
 class MatchSystem extends __WEBPACK_IMPORTED_MODULE_0__core_system__["a" /* System */] {
-  onStart() {}
+  onAwake() {
+    this.checkQueue = [];
+    this.createListeners();
+  }
+
+  registerClickOnSprite(spriteComponent) {
+    spriteComponent.sprite.interactive = true;
+    spriteComponent.sprite.buttonMode = true;
+    spriteComponent.sprite.on('click', () => {
+      console.log('click', this);
+    });
+    spriteComponent.onClick = true;
+  }
+
+  createListeners() {
+    this.listen('Renderer.SpriteLoaded', spriteComponent => {
+      let gemComponent = spriteComponent.getSiblingComponent('Gem');
+
+      if (gemComponent !== undefined) {
+        this.registerClickOnSprite(spriteComponent);
+      }
+    });
+  }
 
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = MatchSystem;

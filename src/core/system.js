@@ -25,15 +25,19 @@ export class System {
 
     sendSignal(id) {
         let listeners = this.game.listeners[id];
-        for (let i = 0; i < listeners.length; i++) {
-            listeners[i].callback();
+        if(listeners !== undefined) {
+            for (let i = 0; i < listeners.length; i++) {
+                listeners[i].callback();
+            }
         }
     }
 
     sendSignal(id, params) {
         let listeners = this.game.listeners[id];
-        for (let i = 0; i < listeners.length; i++) {
-            listeners[i].callback(params);
+        if(listeners !== undefined) {
+            for (let i = 0; i < listeners.length; i++) {
+                listeners[i].callback(params);
+            }
         }
     }
     // --------------------------------------------

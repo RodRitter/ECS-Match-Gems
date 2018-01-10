@@ -90,6 +90,7 @@ export class GameSystem extends System {
         window.setTimeout(() => {
             this.sendSignal('Grid.AddGemsToMap');
             this.sendSignal('Position.AlignAndPositionToGrid');
+            this.sendSignal('Match.RegisterClickEvents');
         }, 10);
         
     }

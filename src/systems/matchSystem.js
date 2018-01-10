@@ -4,28 +4,24 @@ export class MatchSystem extends System {
 
     onAwake() {
         this.checkQueue = [];
+        this.createListeners();
     }
 
-    onStart() {
-        
-    }
-
-    registerClickListeners() {
-        let components = this.getComponentsWithDependency('Gem', 'Sprite');
-
-        for (let i = 0; i < components.length; i++) {
-            const sprite = components[i].sprite;
-            if(sprite.loaded && !sprite.onClick) {
-                sprite.sprite.click = () => {
-                    console.log('click');
-                }
-            }
-        }
+    registerClickOnSprite(spriteComponent) {
+        spriteComponent.sprite.interactive = true;
+        spriteComponent.sprite.buttonMode = true;
+        spriteComponent.sprite.on('click', () => {
+            console.log('click', this);
+        });
+        spriteComponent.onClick = true;
     }
 
     createListeners() {
-        this.listen('Match.RegisterClickEvents', () => {
-            this.registerClickListeners();
+        this.listen('Renderer.SpriteLoaded', (spriteComponent) => {
+            let gemComponent = spriteComponent.getSiblingComponent('Gem');
+            if(gemComponent !== undefined) {
+                this.registerClickOnSprite(spriteComponent);
+            }
         });
     }
 

@@ -29,7 +29,7 @@ export class Renderer extends System {
     renderNewSprites() {
         let spriteComponents = this.game.components['Sprite'];
 
-        if(spriteComponents !== undefined) {
+        if(this.game.running && spriteComponents !== undefined) {
             for (let i = 0; i < Object.keys(spriteComponents).length; i++) {
                 const spriteComponent = this.game.components['Sprite'][Object.keys(spriteComponents)[i]];
                 if(spriteComponent.loaded == false) {
@@ -38,10 +38,9 @@ export class Renderer extends System {
                     spriteComponent.sprite = sprite;
                     this.stage.addChild(sprite);
                     spriteComponent.loaded = true;
+                    this.sendSignal('Renderer.SpriteLoaded', spriteComponent);
                 }
             }
         }
-
-        this.sendSignal('Match.RegisterClickEvents'); // Register click events on new sprites
     }
 }
