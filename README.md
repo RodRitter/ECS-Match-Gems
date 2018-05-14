@@ -3,5 +3,6 @@ This is my attempt at using the [Entity-Component-System](https://en.wikipedia.o
 
 ## Installation & Running
 - ` $ npm install http-server -g`
+- Navigate to root folder
 - `$ http-server`
 - Go to `http://localhost:8080/`
